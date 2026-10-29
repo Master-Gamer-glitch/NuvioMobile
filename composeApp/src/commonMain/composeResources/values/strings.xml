@@ -2489,7 +2489,7 @@
     <string name="compose_settings_root_discord_description">Show what you're watching on your Discord profile.</string>
     <string name="discord_connect_title">Connect Discord</string>
     <string name="discord_connect_description">Sign in with Discord to show the movie or episode you're watching on your profile, with artwork, progress and quality.</string>
-    <string name="discord_connect_warning">Discord has no Rich Presence API on phones, so Nuvio signs in as you (like Kizzy). Using your account token in a third-party app is against Discord's Terms of Service and carries a small risk to your account. The token stays on this device.</string>
+    <string name="discord_connect_warning">Discord has no Rich Presence API on phones, so Nuvio signs in as you. Using your account token in a third-party app is against Discord's Terms of Service and carries a small risk to your account. The token stays on this device.</string>
     <string name="discord_connect_button">Connect Discord account</string>
     <string name="discord_connecting_button">Connecting…</string>
     <string name="discord_unsupported">Discord Rich Presence is only available in the Android app for now.</string>

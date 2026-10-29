@@ -188,5 +188,8 @@ object DiscordPresence {
     }
 }
 
-/** The Discord application the Mac InfuseRPC helper uses; needed to proxy external images. */
+/**
+ * Discord application the presence is attributed to; Discord also needs it to proxy external
+ * images (posters, icons). Maintainers would swap in an application registered for Nuvio.
+ */
 internal const val DISCORD_APPLICATION_ID = "1565313703350370356"
