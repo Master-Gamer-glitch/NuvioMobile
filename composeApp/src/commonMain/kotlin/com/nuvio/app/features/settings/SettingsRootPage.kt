@@ -11,6 +11,7 @@ import androidx.compose.material.icons.rounded.BugReport
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.Extension
 import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.Forum
 import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Link
@@ -33,6 +34,8 @@ import nuvio.composeapp.generated.resources.compose_about_made_with
 import nuvio.composeapp.generated.resources.compose_about_version_format
 import nuvio.composeapp.generated.resources.compose_settings_page_account
 import nuvio.composeapp.generated.resources.compose_settings_page_advanced
+import nuvio.composeapp.generated.resources.compose_settings_page_discord
+import nuvio.composeapp.generated.resources.compose_settings_root_discord_description
 import nuvio.composeapp.generated.resources.compose_settings_page_appearance
 import nuvio.composeapp.generated.resources.compose_settings_page_integrations
 import nuvio.composeapp.generated.resources.compose_settings_page_licenses_attributions
@@ -78,6 +81,7 @@ internal fun LazyListScope.settingsRootContent(
     onContentDiscoveryClick: () -> Unit,
     onIntegrationsClick: () -> Unit,
     onTrackingClick: () -> Unit,
+    onDiscordClick: (() -> Unit)? = null,
     onSupportersContributorsClick: () -> Unit,
     onLicensesAttributionsClick: () -> Unit,
     onCheckForUpdatesClick: (() -> Unit)? = null,
@@ -133,6 +137,16 @@ internal fun LazyListScope.settingsRootContent(
                         isTablet = isTablet,
                         onClick = onTrackingClick,
                     )
+                    if (onDiscordClick != null) {
+                        SettingsGroupDivider(isTablet = isTablet)
+                        SettingsNavigationRow(
+                            title = stringResource(Res.string.compose_settings_page_discord),
+                            description = stringResource(Res.string.compose_settings_root_discord_description),
+                            icon = Icons.Rounded.Forum,
+                            isTablet = isTablet,
+                            onClick = onDiscordClick,
+                        )
+                    }
                 }
             }
         }

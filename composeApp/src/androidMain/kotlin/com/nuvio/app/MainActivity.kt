@@ -52,6 +52,7 @@ import com.nuvio.app.features.settings.AppIconPlatform
 import com.nuvio.app.features.settings.ThemeSettingsStorage
 import com.nuvio.app.features.trakt.TraktAuthStorage
 import com.nuvio.app.features.trakt.TraktCommentsStorage
+import com.nuvio.app.features.discord.DiscordPresenceStorage
 import com.nuvio.app.features.trakt.TraktLibraryStorage
 import com.nuvio.app.features.trakt.TraktSettingsStorage
 import com.nuvio.app.features.mdblist.PlatformMdbListAuthPersistence
@@ -122,6 +123,7 @@ open class MainActivity : AppCompatActivity() {
         MdbListSettingsStorage.initialize(applicationContext)
         TraktAuthStorage.initialize(applicationContext)
         TraktCommentsStorage.initialize(applicationContext)
+        DiscordPresenceStorage.initialize(applicationContext)
         TraktLibraryStorage.initialize(applicationContext)
         TraktSettingsStorage.initialize(applicationContext)
         PlatformMdbListAuthPersistence.initialize(applicationContext)
