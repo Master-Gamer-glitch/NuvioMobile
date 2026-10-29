@@ -2521,7 +2521,7 @@
     <string name="discord_status_idle_choice">Idle</string>
     <string name="discord_status_dnd">Do Not Disturb</string>
     <string name="discord_header">Card header</string>
-    <string name="discord_header_description">What follows \"Watching\" at the top of the card</string>
+    <string name="discord_header_description">What follows “Watching” at the top of the card</string>
     <string name="discord_header_app">Nuvio</string>
     <string name="discord_header_title">Title</string>
     <string name="discord_member_list">Member list shows</string>
