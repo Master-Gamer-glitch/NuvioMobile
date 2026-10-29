@@ -82,6 +82,23 @@ class DiscordActivityBuilderTest {
     }
 
     @Test
+    fun titleHeaderMovieKeepsYearBesideTheTitle() {
+        val movie = episode.copy(
+            title = "Spider-Man: Brand New Day",
+            isEpisode = false,
+            seasonNumber = null,
+            episodeNumber = null,
+            episodeTitle = null,
+            year = "2026",
+        )
+        val settings = DiscordPresenceSettings(header = DiscordCardHeader.TITLE)
+        val card = buildDiscordCard(movie, settings, nowMs = 0L, betterPosterAvailable = false)
+        assertEquals("Spider-Man: Brand New Day (2026)", card.name)
+        assertEquals("4K · Dolby Vision · Dolby Atmos 7.1 (TrueHD)", card.details)
+        assertNull(card.state)
+    }
+
+    @Test
     fun genericEpisodeNamesAreSkipped() {
         val generic = episode.copy(episodeTitle = "Episode 7", episodeNumber = 7)
         assertEquals("S01E07", generic.secondLine())

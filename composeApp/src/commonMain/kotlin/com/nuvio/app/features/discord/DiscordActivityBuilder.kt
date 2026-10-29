@@ -149,6 +149,10 @@ internal fun buildDiscordCard(
     val paused = !playback.isPlaying
     val quality = playback.quality()
     val titleHeader = settings.header == DiscordCardHeader.TITLE && playback.title.length >= 2
+    // With the title in the header, a movie's year on its own would become the bold line;
+    // it reads better beside the title: "Watching Dune: Part Two (2024)".
+    val headerYear = playback.year
+        ?.takeIf { titleHeader && !playback.isEpisode && settings.showSecondLine && it.isNotBlank() }
 
     // A Watching card has two text lines: fill them from title line, second line, quality line,
     // skipping a line that just repeats the header.
@@ -160,7 +164,7 @@ internal fun buildDiscordCard(
     val qualityLine = quality.line.takeIf { wantQuality && it.length >= 2 }
     val candidates = buildList {
         if (settings.showTitleLine) add(playback.title)
-        if (settings.showSecondLine) playback.secondLine()?.let(::add)
+        if (settings.showSecondLine && headerYear == null) playback.secondLine()?.let(::add)
         qualityLine?.let(::add)
     }
     val lines = candidates
@@ -207,7 +211,11 @@ internal fun buildDiscordCard(
     }
 
     return DiscordCard(
-        name = if (titleHeader) playback.title.clip(128) else DISCORD_APP_NAME,
+        name = when {
+            headerYear != null -> "${playback.title} ($headerYear)".clip(128)
+            titleHeader -> playback.title.clip(128)
+            else -> DISCORD_APP_NAME
+        },
         details = lines.getOrNull(0),
         state = lines.getOrNull(1),
         memberListText = settings.memberListText,
