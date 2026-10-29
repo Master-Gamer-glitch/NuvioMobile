@@ -4,7 +4,10 @@ import kotlin.math.roundToLong
 
 internal const val DISCORD_APP_NAME = "Nuvio"
 internal const val PAUSE_ICON_URL = "https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/72x72/23f8.png"
-internal const val NUVIO_ICON_URL = "https://nuvio.tv/assets/Logo_1080x1080.png"
+// The full app icon (logo inset on black) so it sits cleanly in Discord's round badge;
+// the bare transparent logo poked out of the circle.
+internal const val NUVIO_ICON_URL =
+    "https://raw.githubusercontent.com/NuvioMedia/NuvioMobile/cmp-rewrite/iosApp/iosApp/Assets.xcassets/AppIcon.appiconset/app-icon-1024.png"
 
 internal data class DiscordQuality(
     val resolution: String?,
