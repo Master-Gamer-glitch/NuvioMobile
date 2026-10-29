@@ -2500,9 +2500,9 @@
     <string name="discord_section_rich_presence">Rich presence</string>
     <string name="discord_enabled">Show what I'm watching</string>
     <string name="discord_title_line">Title line</string>
-    <string name="discord_title_line_description">Show or movie name on the bold line</string>
+    <string name="discord_title_line_description">Show name, or movie name · year</string>
     <string name="discord_second_line">Second line</string>
-    <string name="discord_second_line_description">Episode (S01E02 · name) or release year</string>
+    <string name="discord_second_line_description">Episode number and name (S01E02 · name)</string>
     <string name="discord_quality_line">Quality line</string>
     <string name="discord_quality_line_description">Resolution, HDR and audio, e.g. 4K · Dolby Vision · Dolby Atmos 7.1</string>
     <string name="discord_quality_always">Always</string>
