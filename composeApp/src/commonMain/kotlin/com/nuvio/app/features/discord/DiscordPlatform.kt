@@ -5,7 +5,7 @@ import kotlinx.serialization.json.JsonObject
 
 /**
  * Discord has no local RPC on mobile, so presence goes over the user's own gateway
- * session. Only Android implements it.
+ * session, the same approach as Kizzy (github.com/dead8309/Kizzy). Only Android implements it.
  */
 internal expect object DiscordPlatform {
     val isSupported: Boolean
