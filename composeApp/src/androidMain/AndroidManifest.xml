@@ -7,6 +7,12 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <application>
+        <activity
+            android:name="com.nuvio.app.features.discord.DiscordLoginActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation|keyboardHidden"
+            android:exported="false"
+            android:theme="@style/Theme.Nuvio"
+            android:windowSoftInputMode="adjustResize" />
         <service
             android:name="com.nuvio.app.features.downloads.DownloadsTransferJobService"
             android:permission="android.permission.BIND_JOB_SERVICE"

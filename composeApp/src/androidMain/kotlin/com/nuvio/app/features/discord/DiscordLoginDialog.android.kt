@@ -1,39 +1,29 @@
 package com.nuvio.app.features.discord
 
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.graphics.Color
+import android.os.Bundle
+import android.util.TypedValue
+import android.view.Gravity
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.webkit.CookieManager
 import android.webkit.WebStorage
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import android.widget.ImageButton
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import kotlinx.coroutines.delay
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import kotlinx.serialization.json.Json
 
 private const val LOGIN_URL = "https://discord.com/login"
@@ -45,89 +35,130 @@ private const val READ_TOKEN_JS =
         "document.body.appendChild(f);var t=f.contentWindow.localStorage.getItem('token');" +
         "f.remove();return t;}catch(e){return null;}})()"
 
-@SuppressLint("SetJavaScriptEnabled")
+/** Hands the login result from [DiscordLoginActivity] back to the composable that opened it. */
+internal object DiscordLoginBridge {
+    var listener: ((String?) -> Unit)? = null
+}
+
+// The login runs in its own activity: a WebView inside a Compose Dialog window never gets
+// composited on some devices (the page loads but the screen stays blank).
 @Composable
 internal actual fun DiscordLoginDialog(
     onToken: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val context = LocalContext.current
     val currentOnToken by rememberUpdatedState(onToken)
-    var webView by remember { mutableStateOf<WebView?>(null) }
-    var delivered by remember { mutableStateOf(false) }
+    val currentOnDismiss by rememberUpdatedState(onDismiss)
 
-    fun tryReadToken(view: WebView) {
-        val url = view.url.orEmpty()
+    DisposableEffect(Unit) {
+        DiscordLoginBridge.listener = { token ->
+            if (token != null) currentOnToken(token) else currentOnDismiss()
+        }
+        context.startActivity(Intent(context, DiscordLoginActivity::class.java))
+        onDispose { DiscordLoginBridge.listener = null }
+    }
+}
+
+class DiscordLoginActivity : ComponentActivity() {
+    private lateinit var webView: WebView
+    private var delivered = false
+    private val poll = object : Runnable {
+        override fun run() {
+            tryReadToken()
+            if (!delivered) webView.postDelayed(this, 1_500L)
+        }
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val background = Color.rgb(0x11, 0x12, 0x14)
+        window.decorView.setBackgroundColor(background)
+
+        val title = TextView(this).apply {
+            text = "Log in to Discord"
+            setTextColor(Color.WHITE)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
+        }
+        val close = ImageButton(this).apply {
+            setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
+            setBackgroundColor(Color.TRANSPARENT)
+            contentDescription = "Close"
+            setOnClickListener { finish() }
+        }
+        val toolbar = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setBackgroundColor(background)
+            addView(close, LinearLayout.LayoutParams(dp(48), dp(48)))
+            addView(title, LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { marginStart = dp(8) })
+        }
+
+        webView = WebView(this).apply {
+            setBackgroundColor(background)
+            settings.javaScriptEnabled = true
+            settings.domStorageEnabled = true
+            // Without the WebView marker Discord serves its normal web login (with captcha support).
+            settings.userAgentString = settings.userAgentString.replace("; wv", "")
+            webViewClient = object : WebViewClient() {
+                override fun onPageFinished(view: WebView, url: String?) = tryReadToken()
+
+                override fun doUpdateVisitedHistory(view: WebView, url: String?, isReload: Boolean) =
+                    tryReadToken()
+            }
+        }
+
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(background)
+            addView(toolbar, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
+            addView(webView, LinearLayout.LayoutParams(MATCH_PARENT, 0, 1f))
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime())
+            view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
+        setContentView(root)
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (webView.canGoBack()) webView.goBack() else finish()
+            }
+        })
+
+        webView.loadUrl(LOGIN_URL)
+        // SPA navigation after login doesn't always fire a page load; poll as a fallback.
+        webView.postDelayed(poll, 1_500L)
+    }
+
+    private fun tryReadToken() {
+        val url = webView.url.orEmpty()
         if (delivered || !(url.contains("/channels") || url.contains("/app"))) return
-        view.evaluateJavascript(READ_TOKEN_JS) { result ->
+        webView.evaluateJavascript(READ_TOKEN_JS) { result ->
             val token = decodeToken(result) ?: return@evaluateJavascript
             if (delivered) return@evaluateJavascript
             delivered = true
-            currentOnToken(token)
+            DiscordLoginBridge.listener?.invoke(token)
+            finish()
         }
     }
 
-    // SPA navigation after login doesn't always fire a page load; poll as a fallback.
-    LaunchedEffect(webView) {
-        val view = webView ?: return@LaunchedEffect
-        while (!delivered) {
-            tryReadToken(view)
-            delay(1_500L)
-        }
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
+    override fun onDestroy() {
+        webView.removeCallbacks(poll)
+        if (isFinishing) {
+            if (!delivered) DiscordLoginBridge.listener?.invoke(null)
             // Leave no Discord web session behind in Nuvio's WebView.
             CookieManager.getInstance().removeAllCookies(null)
             WebStorage.getInstance().deleteAllData()
-            webView?.destroy()
         }
+        webView.destroy()
+        super.onDestroy()
     }
 
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
-    ) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background,
-        ) {
-            Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    IconButton(onClick = onDismiss) {
-                        Icon(Icons.Rounded.Close, contentDescription = "Close")
-                    }
-                    Text(
-                        text = "Log in to Discord",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                }
-                AndroidView(
-                    modifier = Modifier.fillMaxSize(),
-                    factory = { context ->
-                        WebView(context).apply {
-                            settings.javaScriptEnabled = true
-                            settings.domStorageEnabled = true
-                            // Without the WebView marker Discord serves its normal web login (with captcha support).
-                            settings.userAgentString = settings.userAgentString.replace("; wv", "")
-                            webViewClient = object : WebViewClient() {
-                                override fun onPageFinished(view: WebView, url: String?) = tryReadToken(view)
-
-                                override fun doUpdateVisitedHistory(view: WebView, url: String?, isReload: Boolean) =
-                                    tryReadToken(view)
-                            }
-                            loadUrl(LOGIN_URL)
-                            webView = this
-                        }
-                    },
-                )
-            }
-        }
-    }
+    private fun dp(value: Int): Int =
+        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value.toFloat(), resources.displayMetrics).toInt()
 }
 
 private fun decodeToken(result: String?): String? {
