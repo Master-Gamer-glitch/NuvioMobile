@@ -730,6 +730,7 @@ private fun MobileSettingsScreen(
                             onContentDiscoveryClick = { onPageChange(SettingsPage.ContentDiscovery) },
                             onIntegrationsClick = { onPageChange(SettingsPage.Integrations) },
                             onTrackingClick = { onPageChange(SettingsPage.TraktAuthentication) },
+                            onDiscordClick = { onPageChange(SettingsPage.DiscordPresence) },
                             onSupportersContributorsClick = onSupportersContributorsClick,
                             onLicensesAttributionsClick = onLicensesAttributionsClick,
                             onCheckForUpdatesClick = onCheckForUpdatesClick,
@@ -875,6 +876,7 @@ private fun MobileSettingsScreen(
                     isTablet = false,
                     settings = debridSettings,
                 )
+                SettingsPage.DiscordPresence -> discordPresenceSettingsContent(isTablet = false)
                 SettingsPage.TraktAuthentication -> trackingSettingsContent(
                     isTablet = false,
                     traktUiState = traktAuthUiState,
@@ -1173,6 +1175,7 @@ private fun TabletSettingsScreen(
                                 onContentDiscoveryClick = { openInlinePage(SettingsPage.ContentDiscovery) },
                                 onIntegrationsClick = { openInlinePage(SettingsPage.Integrations) },
                                 onTrackingClick = { openInlinePage(SettingsPage.TraktAuthentication) },
+                                onDiscordClick = { openInlinePage(SettingsPage.DiscordPresence) },
                                 onSupportersContributorsClick = { openInlinePage(SettingsPage.SupportersContributors) },
                                 onLicensesAttributionsClick = { openInlinePage(SettingsPage.LicensesAttributions) },
                                 onCheckForUpdatesClick = onCheckForUpdatesClick,
@@ -1322,6 +1325,7 @@ private fun TabletSettingsScreen(
                         isTablet = true,
                         settings = debridSettings,
                     )
+                    SettingsPage.DiscordPresence -> discordPresenceSettingsContent(isTablet = true)
                     SettingsPage.TraktAuthentication -> trackingSettingsContent(
                         isTablet = true,
                         traktUiState = traktAuthUiState,
