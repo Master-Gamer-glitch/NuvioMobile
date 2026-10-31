@@ -61,7 +61,7 @@ private fun PlayerScreenRuntime.discordPlayback(mediaInfo: PlayerMediaInfo): Dis
         videoHeight = mediaInfo.videoHeight ?: snapshot.videoHeight.takeIf { it > 0 },
         hdr = mediaInfo.hdr,
         audioCodec = mediaInfo.audioCodec,
-        audioProfile = mediaInfo.audioProfile,
+        audioProfile = mediaInfo.audioProfiles.joinToString(" + ").ifEmpty { null },
         audioChannels = mediaInfo.audioChannels,
         videoBitrate = mediaInfo.videoBitrate?.toLong(),
         fileSizeBytes = activeStream?.behaviorHints?.videoSize,
